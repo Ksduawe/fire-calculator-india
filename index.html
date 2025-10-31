@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags for India -->
+    <title>FIRE Calculator India - Financial Independence Retire Early</title>
+    <meta name="description" content="A modern FIRE calculator for India with advanced visualizations. Plan your financial independence and early retirement journey.">
+    <meta name="keywords" content="FIRE calculator, India, financial independence, retire early, Monte Carlo simulation, retirement planning, investment calculator India, SWR, safe withdrawal rate, early retirement calculator India"> 
+	<!-- Added more keywords -->
+    <meta name="author" content="FIRE Calculator India">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="FIRE Calculator India - Financial Independence Retire Early">
+    <meta property="og:description" content="Plan your financial independence and early retirement in India with our comprehensive FIRE calculator, featuring advanced tools and visualizations.">
+    <meta property="og:image" content="http://fire-calculator.in/featured.jpg">
+	
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="FIRE Calculator India - Financial Independence Retire Early">
+    <meta property="twitter:description" content="Plan your financial independence and early retirement in India with our comprehensive FIRE calculator, featuring advanced tools and visualizations.">
+    <meta property="twitter:image" content="http://fire-calculator.in/featured.jpg">
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="icon" type="image/png" href="fire.png"> 
+
+    <!-- Libraries for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #334155; /* slate-700 */
+        }
+        /* New Card Style */
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            border: 1px solid #e2e8f0; /* slate-200 */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); /* shadow-md subtle */
+            padding: 1.5rem; /* p-6 */
+        }
+        .result-value {
+            font-size: 2.5rem; /* increased size */
+            font-weight: 700;
+            color: #0d9488; /* NEW: teal-600 */
+        }
+        .result-label {
+            font-size: 0.875rem; /* text-sm */
+            color: #64748b; /* NEW: slate-500 */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px; /* slightly thinner */
+            background: #e2e8f0; /* slate-200 */
+            border-radius: 9999px; /* rounded-full */
+            outline: none;
+            transition: background .2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px; /* slightly smaller */
+            height: 18px;
+            background: #0d9488; /* NEW: teal-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white; /* Add border for contrast */
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #0d9488; /* NEW: teal-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        .fire-btn {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            color: #475569; /* slate-600 */
+            background-color: white;
+            padding: 0.5rem; /* Ensure consistent padding */
+            font-size: 0.875rem; /* text-sm */
+        }
+        .fire-btn:hover {
+            background-color: #f1f5f9; /* slate-100 */
+            border-color: #94a3b8; /* slate-400 */
+        }
+        .fire-btn.active {
+            border-color: #0d9488; /* teal-600 */
+            background-color: #ccfbf1; /* teal-100 */
+            color: #0f766e; /* teal-700 */
+            font-weight: 600;
+            box-shadow: inset 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        /* Tooltip styles */
+        .info-icon {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 6px; /* reduced margin */
+            color: #94a3b8; /* slate-400 */
+        }
+        .info-icon:hover {
+            color: #0d9488; /* teal-600 */
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(-20px) scale(0.95);
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+        .modal-overlay.visible .modal-content {
+            transform: translateY(0) scale(1);
+        }
+        .modal-content .close-modal-btn {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+        }
+        .modal-content .close-modal-btn:hover {
+            background-color: #0f766e; /* teal-700 */
+        }
+        .amount-in-words {
+            font-size: 0.75rem; /* text-xs */
+            color: #64748b; /* slate-500 */
+            margin-top: 0.25rem;
+            min-height: 1rem;
+        }
+        .input-label {
+            display: block;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+            color: #475569; /* slate-600 */
+            margin-bottom: 0.25rem; /* mb-1 */
+        }
+        .input-field {
+            margin-top: 0.25rem; /* mt-1 */
+            display: block;
+            width: 100%; /* w-full */
+            border-radius: 0.375rem; /* rounded-md */
+            border: 1px solid #cbd5e1; /* border-slate-300 */
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+            padding: 0.5rem 0.75rem; /* py-2 px-3 */
+            background-color: white; /* Ensure bg color */
+        }
+        .input-field:focus {
+            border-color: #14b8a6; /* focus:border-teal-500 */
+            --tw-ring-color: rgba(20, 184, 166, 0.3); /* focus:ring-teal-500/30 */
+             --tw-ring-offset-shadow: 0 0 #0000; /* Reset */
+             --tw-ring-shadow: 0 0 0 3px var(--tw-ring-color); /* Ring effect */
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+        .section-title {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            color: #1e293b; /* slate-800 */
+            border-bottom: 1px solid #e2e8f0; /* border-b border-slate-200 */
+            padding-bottom: 0.5rem; /* pb-2 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .action-button {
+             background-color: #0d9488; /* teal-600 */
+             color: white;
+             font-weight: 600; /* font-semibold */
+             padding: 0.625rem 1.5rem; /* py-2.5 px-6 */
+             border-radius: 0.5rem; /* rounded-lg */
+             transition: background-color 0.2s ease-in-out;
+             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow */
+             display: inline-flex; /* Align icon properly */
+             align-items: center;
+             justify-content: center;
+        }
+        .action-button:hover {
+             background-color: #0f766e; /* teal-700 */
+        }
+         .action-button:disabled {
+             background-color: #94a3b8; /* slate-400 */
+             cursor: not-allowed;
+             box-shadow: none;
+        }
+        .secondary-button {
+             background-color: #f59e0b; /* amber-500 */
+             color: #451a03; /* amber-900 */
+             font-weight: 600;
+        }
+        .secondary-button:hover {
+             background-color: #d97706; /* amber-600 */
+        }
+         .secondary-button:disabled {
+             background-color: #94a3b8; /* slate-400 */
+             color: white; /* Ensure text is visible when disabled */
+         }
+         /* Style for SEO Content Section */
+         .seo-content h2 {
+             font-size: 1.5rem; /* text-2xl */
+             font-weight: 700; /* font-bold */
+             color: #1e293b; /* slate-800 */
+             margin-bottom: 1rem; /* mb-4 */
+             margin-top: 1.5rem; /* mt-6 */
+         }
+         .seo-content h3 {
+             font-size: 1.25rem; /* text-xl */
+             font-weight: 600; /* font-semibold */
+             color: #334155; /* slate-700 */
+             margin-bottom: 0.75rem; /* mb-3 */
+              margin-top: 1.25rem; /* mt-5 */
+         }
+         .seo-content p {
+             line-height: 1.6; /* leading-relaxed */
+             margin-bottom: 1rem; /* mb-4 */
+             color: #475569; /* slate-600 */
+         }
+         .seo-content ul {
+             list-style: disc;
+             margin-left: 1.5rem; /* ml-6 */
+             margin-bottom: 1rem; /* mb-4 */
+             color: #475569; /* slate-600 */
+         }
+         .seo-content li {
+             margin-bottom: 0.5rem; /* mb-2 */
+         }
+          .seo-content a {
+              color: #0d9488; /* teal-600 */
+              text-decoration: underline;
+          }
+           .seo-content a:hover {
+               color: #0f766e; /* teal-700 */
+           }
+    </style>
+    
+    <!-- Structured Data for India -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "FIRE Calculator India - Financial Independence Retire Early",
+      "description": "Plan your financial independence and early retirement in India with our comprehensive FIRE calculator, featuring Monte Carlo simulations, investment projections, and more.",
+      "url": "",
+      "mainEntity": {
+        "@type": "FinancialService",
+        "name": "FIRE Calculator India",
+        "serviceType": "Retirement Calculator",
+        "provider": {
+          "@type": "Organization",
+          "name": "FIRE Calculator India"
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "India"
+        },
+        "description": "A modern FIRE calculator for India with advanced visualizations. Calculate your FIRE number, plan savings, and explore retirement scenarios."
+      }
+    }
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-700">
+
+    <!-- New Simple Header -->
+    <header class="bg-white shadow-sm mb-8">
+        <div class="container mx-auto py-4 px-6 flex justify-between items-center">
+             <div class="flex items-center space-x-2">
+                <!-- Simple Flame Icon -->
+                 <svg class="h-8 w-8 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A.5.5 0 0115.5 5.5v1.18c0 .333-.11.65-.3.9L13.2 9.58a.5.5 0 01-.6 0L10.6 7.58a.5.5 0 01-.3-.9V5.5a.5.5 0 01.138-.362l.09-.082a.5.5 0 01.568-.063l.006.003.018.009.02.01.02.01.018.01.02.008.02.008.02.007.018.007.02.006.02.005.018.005.02.004.018.004.02.003.018.003.02.002.02.002.018.002.02.002.018.001.018.001.02.001.02.001.018 0 .02 0 .018 0 .02 0 .018 0 .02-.001.018-.001.02-.001.02-.001.018-.001.018-.002.02-.002.02-.002.018-.002.02-.003.018-.003.02-.003.018-.004.02-.004.018-.005.02-.005.02-.006.018-.007.02-.007.02-.008.018-.008.02-.008.018-.01.02-.01.02-.01.018-.009.006-.003a.5.5 0 01.568.063l.09.082z" />
+                 </svg>
+                 <h1 class="text-2xl font-bold text-slate-800">FIRE Calculator <span class="text-teal-600">India</span></h1>
+            </div>
+            <p class="text-sm text-slate-500 hidden md:block">Plan Your Early Retirement</p>
+        </div>
+    </header>
+
+    <div class="container mx-auto p-4 md:p-0 mb-8">
+        <!-- Main Layout Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Input Controls Column - Consolidated Panel -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="card space-y-6">
+                    <!-- Section: Your Goals -->
+                    <div>
+                        <h2 class="section-title">Your Goals</h2>
+                        <div class="space-y-4">
+                             <div>
+                                <label for="currentAge" class="input-label">Your Current Age</label>
+                                <input type="number" id="currentAge" value="35" min="18" max="80" class="input-field">
+                            </div>
+                             <div>
+                                <label for="retirementAge" class="input-label">Desired Retirement Age</label>
+                                <input type="number" id="retirementAge" value="60" min="18" max="100" class="input-field"> <!-- Increased max age -->
+                            </div>
+                            <div>
+                                <label class="input-label">Desired FIRE Lifestyle</label>
+                                <div id="fire-type-selector" class="grid grid-cols-3 gap-2 mt-1">
+                                    <button class="fire-btn" data-multiplier="0.75">Lean</button>
+                                    <button class="fire-btn active" data-multiplier="1.0">Standard</button>
+                                    <button class="fire-btn" data-multiplier="1.5">Fat</button>
+                                </div>
+                                <div id="info-icon-lifestyle" class="info-icon inline-block mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                             <div>
+                                <label for="fireMultiplier" class="input-label flex items-center">
+                                    FIRE Multiplier: <span id="fireMultiplierValue" class="font-bold text-teal-600 ml-1 mr-1">25</span>x (<span id="swrValue">4.0</span>% SWR)
+                                     <div id="info-icon-rule" class="info-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </label>
+                                <input type="range" id="fireMultiplier" min="20" max="40" value="25" step="1" class="mt-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Your Finances -->
+                    <div>
+                        <h2 class="section-title">Your Finances</h2>
+                         <div class="space-y-4">
+                            <div>
+                                <label for="currentSavings" class="input-label">Current Savings (INR)</label>
+                                <input type="number" id="currentSavings" value="1000000" min="0" class="input-field">
+                                <div id="currentSavingsWords" class="amount-in-words"></div>
+                            </div>
+                            <div>
+                                <label for="monthlyContributions" class="input-label">Monthly Contributions</label>
+                                <input type="number" id="monthlyContributions" value="50000" min="0" class="input-field">
+                                <div id="monthlyContributionsWords" class="amount-in-words"></div>
+                            </div>
+                             <div>
+                                <label for="contributionIncrease" class="input-label">Annual Contribution Increase: <span id="contributionIncreaseValue" class="font-bold text-teal-600">5</span>%</label>
+                                <input type="range" id="contributionIncrease" min="0" max="40" value="5" step="0.5" class="mt-1">
+                            </div>
+                            <div>
+                                <label for="monthlyExpenses" class="input-label">Monthly Expenses (Today's Value)</label>
+                                <input type="number" id="monthlyExpenses" value="100000" min="0" class="input-field">
+                                <div id="monthlyExpensesWords" class="amount-in-words"></div>
+                            </div>
+                         </div>
+                    </div>
+
+                    <!-- Section: Market Assumptions -->
+                     <div>
+                        <h2 class="section-title">Market Assumptions</h2>
+                         <div class="space-y-4">
+                            <div>
+                                <label for="annualReturn" class="input-label">Annual Investment Return: <span id="annualReturnValue" class="font-bold text-teal-600">12</span>%</label>
+                                <input type="range" id="annualReturn" min="1" max="25" value="12" step="0.5" class="mt-1">
+                            </div>
+                            <div>
+                                <label for="inflation" class="input-label">Annual Inflation: <span id="inflationValue" class="font-bold text-teal-600">6.5</span>%</label>
+                                <input type="range" id="inflation" min="1" max="25" value="6.5" step="0.5" class="mt-1">
+                            </div>
+                            <div>
+                                <label for="taxRate" class="input-label">Annual Tax Rate on Gains: <span id="taxRateValue" class="font-bold text-teal-600">15</span>%</label>
+                                <input type="range" id="taxRate" min="0" max="50" value="15" step="1" class="mt-1">
+                                <div class="flex justify-around text-xs mt-2 text-slate-500">
+                                    <label class="flex items-center space-x-1"><input type="radio" name="taxApplication" value="post" class="text-teal-600 focus:ring-teal-500" checked> <span>After Retirement</span></label>
+                                    <label class="flex items-center space-x-1"><input type="radio" name="taxApplication" value="all" class="text-teal-600 focus:ring-teal-500"> <span>All Years</span></label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="otherFees" class="input-label">Other Annual Fees: <span id="otherFeesValue" class="font-bold text-teal-600">0</span>%</label>
+                                <input type="range" id="otherFees" min="0" max="5" value="0" step="0.1" class="mt-1">
+                                 <div class="flex justify-around text-xs mt-2 text-slate-500">
+                                    <label class="flex items-center space-x-1"><input type="radio" name="feesApplication" value="post" class="text-teal-600 focus:ring-teal-500" checked> <span>After Retirement</span></label>
+                                    <label class="flex items-center space-x-1"><input type="radio" name="feesApplication" value="all" class="text-teal-600 focus:ring-teal-500"> <span>All Years</span></label>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">(e.g., management fees)</p>
+                            </div>
+                         </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Output/Results Column: NEW Dashboard Grid Layout -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Key Results Row -->
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div class="card text-center md:col-span-1">
+                        <p class="result-label mb-1">FIRE In</p>
+                        <p id="yearsToFire" class="result-value">--</p>
+                        <p id="fireAge" class="text-sm text-slate-500 mt-1">Calculating...</p>
+                    </div>
+                     <div class="card text-center md:col-span-2">
+                        <div class="flex items-center justify-center mb-1">
+                            <p class="result-label">FIRE Amount Target</p>
+                            <div id="info-icon-target" class="info-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <div>
+                                <p id="fireAmountToday" class="text-xl font-semibold text-slate-600">--</p>
+                                <p class="text-xs text-slate-400">Today's Value</p>
+                                <div id="fireAmountTodayWords" class="amount-in-words"></div>
+                             </div>
+                             <div>
+                                <p id="fireAmount" class="text-2xl font-bold text-teal-600">--</p>
+                                <p class="text-xs text-slate-400">At Retirement</p>
+                                <div id="fireAmountWords" class="amount-in-words"></div>
+                             </div>
+                         </div>
+                         <p id="fireRuleText" class="text-xs text-slate-400 mt-2 text-center">(Based on the 25x rule)</p>
+                    </div>
+                </div>
+
+                <!-- Secondary Results Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card text-center">
+                        <p class="result-label mb-1">Savings Last Until Age</p>
+                        <p id="ageAtDepletion" class="text-xl font-semibold text-slate-800">--</p>
+                        <p id="yearsRemaining" class="text-xs text-slate-400 mt-1">Calculating...</p>
+                    </div>
+                     <div class="card text-center">
+                        <p class="result-label mb-1">Savings at Retirement</p>
+                        <p id="projectedSavings" class="text-xl font-semibold text-slate-800">--</p>
+                        <div id="projectedSavingsWords" class="amount-in-words mt-1"></div>
+                    </div>
+                     <div class="card text-center">
+                        <p class="result-label mb-1">Expenses at Retirement</p>
+                        <p id="retirementMonthlyExpenseOutput" class="text-xl font-semibold text-slate-800">--</p>
+                         <p class="text-xs text-slate-400 mt-1">Per Month</p>
+                        <div id="retirementMonthlyExpenseOutputWords" class="amount-in-words"></div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-800">Journey to FIRE</h3>
+                        <div class="h-64"><canvas id="journeyChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-800">Corpus Balance Over Time</h3>
+                        <div class="h-64"><canvas id="drawdownChart"></canvas></div>
+                    </div>
+                     <div class="card md:col-span-2">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-800">Sources of Portfolio Growth</h3>
+                        <canvas id="portfolioGrowthChart"></canvas>
+                    </div>
+                      <div class="card md:col-span-2">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-800">Annual Portfolio Changes</h3>
+                        <canvas id="annualChangesChart"></canvas>
+                    </div>
+                     <div class="card">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-800">Inflation's Impact</h3>
+                        <div class="h-64"><canvas id="expenseGrowthChart"></canvas></div>
+                    </div>
+                     <div class="card">
+                         <h3 class="text-lg font-semibold mb-3 text-slate-800 text-center">Fund Breakdown</h3>
+                         <div class="h-64"><canvas id="breakdownPieChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                 <div class="card">
+                    <h3 class="text-lg font-semibold mb-3 text-slate-800">Year-by-Year Breakdown</h3>
+                    <div class="table-container">
+                        <table class="w-full text-sm text-left text-slate-500">
+                            <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0">
+                                <tr>
+                                    <th scope="col" class="px-3 py-2">Age</th>
+                                    <th scope="col" class="px-3 py-2 text-right">Start Bal</th>
+                                    <th scope="col" class="px-3 py-2 text-right">Change</th>
+                                    <th scope="col" class="px-3 py-2 text-right">Rate</th>
+                                    <th scope="col" class="px-3 py-2 text-right">Gain</th>
+                                    <th scope="col" class="px-3 py-2 text-right">Taxes/Fees</th>
+                                    <th scope="col" class="px-3 py-2 text-right">End Bal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="breakdownTableBody" class="divide-y divide-slate-100">
+                                <!-- Rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Monte Carlo & Export -->
+                 <div class="card">
+                     <div class="flex items-center justify-center mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800 text-center">Monte Carlo Simulation</h3>
+                         <div id="info-icon-monte-carlo" class="info-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-center text-sm text-slate-500 mb-4">Stress-test your plan against market volatility.</p>
+                    <div class="text-center mb-4">
+                        <button id="runMonteCarlo" class="action-button secondary-button">Run Simulation</button>
+                        <p id="monteCarloStatus" class="text-sm mt-2 h-5 font-medium text-teal-600"></p>
+                    </div>
+                    <canvas id="monteCarloChart" class="mt-4"></canvas>
+                </div>
+
+                 <div class="card text-center">
+                    <h3 class="text-lg font-semibold mb-3 text-slate-800">Export Your Plan</h3>
+                    <p class="text-center text-sm text-slate-500 mb-4">Save a PDF summary of your FIRE plan.</p>
+                    <button id="exportPdfBtn" class="action-button">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-1.5" viewBox="0 0 20 20" fill="currentColor"> <!-- Adjusted margins -->
+                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                       </svg>
+                       Export to PDF
+                    </button>
+               </div>
+
+            </div>
+        </div>
+        
+        <!-- NEW SEO Content Section -->
+        <section class="mt-12 bg-white rounded-xl shadow-md p-6 md:p-8 seo-content border border-slate-200">
+            <h2>Understanding FIRE (Financial Independence, Retire Early) in India</h2>
+            <p>
+                The concept of FIRE – Financial Independence, Retire Early – is gaining significant traction in India. It's a movement focused on aggressive saving and investing to build a corpus large enough to live off the investment returns, allowing individuals to retire much earlier than traditional retirement ages.
+            </p>
+            <h3>Why is FIRE Relevant for Indians Today?</h3>
+            <p>
+                Several factors make FIRE an appealing goal in the modern Indian context:
+            </p>
+            <ul>
+                <li><strong>Rising Cost of Living:</strong> Especially in metropolitan cities, the cost of housing, education, and healthcare is steadily increasing. Achieving financial independence provides a buffer against future price shocks.</li>
+                <li><strong>Changing Job Landscape:</strong> Traditional notions of lifelong employment with a single company are fading. FIRE offers security and flexibility in a dynamic job market.</li>
+                <li><strong>Desire for Flexibility:</strong> Many aspire to pursue passions, travel, or spend more time with family, which early retirement enables.</li>
+                <li><strong>Increased Financial Literacy:</strong> Growing awareness about investing instruments like mutual funds, stocks, and SIPs empowers individuals to plan for FIRE.</li>
+            </ul>
+            
+            <h3>How Does This FIRE Calculator Help?</h3>
+            <p>
+                Achieving FIRE requires careful planning, and that's where this calculator comes in. It helps you quantify your goals and understand the path ahead by:
+            </p>
+            <ul>
+                <li><strong>Calculating Your FIRE Number:</strong> This is the estimated corpus you need to accumulate based on your desired annual expenses and a chosen Safe Withdrawal Rate (SWR). The calculator uses your preferred FIRE lifestyle (Lean, Standard, Fat) and the FIRE Multiplier (inverse of SWR) to determine this target.</li>
+                <li><strong>Projecting Your Savings Growth:</strong> Based on your current savings, monthly contributions, expected investment returns, and contribution increases, it shows how your corpus might grow over time.</li>
+                <li><strong>Estimating Time to FIRE:</strong> The calculator projects how many years it might take to reach your FIRE number at your current saving and investment rate.</li>
+                <li><strong>Visualizing Your Journey:</strong> Charts illustrate your savings growth against your target, the impact of inflation on expenses, how long your corpus might last, and the breakdown of your portfolio.</li>
+                <li><strong>Stress-Testing Your Plan:</strong> The Monte Carlo simulation runs hundreds of scenarios with variable market returns to estimate the probability of your plan's success, offering a more realistic perspective than fixed-return assumptions.</li>
+            </ul>
+            
+             <h3>Key Concepts in FIRE Planning</h3>
+            <ul>
+                 <li><strong>FIRE Number:</strong> Your target corpus, typically calculated as Annual Expenses × (100 / Safe Withdrawal Rate %). A common multiplier is 25x (implying a 4% SWR).</li>
+                 <li><strong>Safe Withdrawal Rate (SWR):</strong> The percentage of your corpus you can withdraw annually in retirement with a high probability of not running out of money. The 4% rule is a popular guideline, but might need adjustment based on individual circumstances and market conditions in India.</li>
+                 <li><strong>Corpus:</strong> The total amount of money saved and invested for retirement.</li>
+                 <li><strong>Inflation:</strong> The rate at which the cost of goods and services increases over time. Factoring in inflation (often assumed between 6-7% long-term in India) is crucial for realistic planning.</li>
+            </ul>
+            
+            <h3>Achieving FIRE in India: Strategies</h3>
+             <p>While this calculator provides the numbers, achieving FIRE typically involves:</p>
+            <ul>
+                 <li><strong>Aggressive Saving:</strong> Saving a significant portion (often 50%+) of your income.</li>
+                 <li><strong>Disciplined Investing:</strong> Investing consistently, often in growth-oriented assets like equities (via direct stocks or mutual funds) for the long term.</li>
+                 <li><strong>Expense Management:</strong> Consciously tracking and controlling expenses to maximize savings.</li>
+                 <li><strong>Increasing Income:</strong> Finding ways to boost earnings through career growth, side hustles, or upskilling.</li>
+            </ul>
+
+            <p>
+                Use this FIRE Calculator India tool to get started on your journey towards financial independence and early retirement. Input your details, explore different scenarios, and take control of your financial future!
+            </p>
+        </section>
+
+
+    </div>
+
+    <footer class="text-center mt-12 py-6 border-t border-slate-200">
+		<p class="text-sm text-gray-500">Made by Asfand</p>
+        <p class="text-sm text-gray-500">Email: <a href="mailto:iamusmanjk@gmail.com" class="text-blue-600 hover:underline">iamusmanjk@gmail.com</a></p><br>
+
+        <p class="text-sm text-slate-500">&copy; 2025 FIRE Calculator India. All rights reserved.</p>
+         <!-- Optional: Add disclaimer -->
+         <p class="text-xs text-slate-400 mt-2">Disclaimer: This calculator provides estimates based on your inputs and assumptions. It is for informational purposes only and does not constitute financial advice. Consult with a qualified financial advisor for personalized guidance.</p>
+    </footer>
+
+    <!-- Info Modals -->
+    <div id="info-modal-lifestyle" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">FIRE Lifestyle Definitions</h3>
+            <div class="space-y-4 text-slate-700">
+                <div>
+                    <h4 class="font-bold text-green-600">Lean FIRE</h4>
+                    <p>A minimalist retirement lifestyle. Calculations are based on spending <strong>75%</strong> of your baseline monthly expenses. This path requires a smaller nest egg but involves more frugal living.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-teal-600">Standard FIRE</h4>
+                    <p>Aims to maintain your current standard of living in retirement. Calculations are based on <strong>100%</strong> of your baseline monthly expenses.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-purple-600">FAT FIRE</h4>
+                    <p>A more luxurious retirement. Calculations are based on spending <strong>150%</strong> of your baseline monthly expenses. This path allows for more comforts and travel but requires a significantly larger nest egg.</p>
+                </div>
+            </div>
+            <button class="close-modal-btn mt-6 w-full py-2 rounded-lg transition">Close</button>
+        </div>
+    </div>
+    
+    <div id="info-modal-rule" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">FIRE Rule Explained</h3>
+            <div class="space-y-4 text-slate-700">
+                <p><strong>FIRE Multiplier:</strong> A common rule of thumb to estimate your retirement target. It's a multiple of your first year's retirement expenses. The standard is 25x.</p>
+                <p><strong>Safe Withdrawal Rate (SWR):</strong> The percentage of your portfolio you can withdraw annually without running out of money. It is the inverse of the multiplier (e.g., 1 / 25 = 4%). A lower SWR (higher multiplier) is considered safer.</p>
+            </div>
+             <button class="close-modal-btn mt-6 w-full py-2 rounded-lg transition">Close</button>
+        </div>
+    </div>
+    
+    <div id="info-modal-target" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">FIRE Amount Target Explained</h3>
+            <div class="space-y-4 text-slate-700">
+                <p><strong>Today's Value:</strong> This is the amount of money you would need if you were to retire today with your current expenses. It's a good baseline to understand your goal in today's terms.</p>
+                <p><strong>At Retirement:</strong> This is the inflation-adjusted amount you will actually need when you reach your target retirement age. Due to inflation, you will need a much larger corpus in the future to maintain the same purchasing power.</p>
+            </div>
+             <button class="close-modal-btn mt-6 w-full py-2 rounded-lg transition">Close</button>
+        </div>
+    </div>
+
+    <div id="info-modal-monte-carlo" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">Monte Carlo Simulation Explained</h3>
+            <div class="space-y-4 text-slate-700">
+                <p>A Monte Carlo simulation is a powerful tool that helps you understand the **probability** of your retirement plan succeeding. Instead of assuming a fixed investment return every year, it runs hundreds of different scenarios with random, fluctuating returns based on historical market behavior.</p>
+                <p><strong>How it works:</strong> It stress-tests your plan against good and bad market years. The result is a "Success Rate," which is the percentage of simulations where you didn't run out of money. A higher success rate means your plan is more robust.</p>
+                <p>The chart shows the range of possible outcomes: the **median** (50th percentile) is the most likely result, while the 10th and 90th percentiles show you the potential for worse or better-than-average market conditions.</p>
+            </div>
+             <button class="close-modal-btn mt-6 w-full py-2 rounded-lg transition">Close</button>
+        </div>
+    </div>
+
+
+    <script>
+        // No changes needed in JS logic for this design overhaul, only HTML/CSS structure
+        
+        // Chart instances
+        let drawdownChart, breakdownPieChart, journeyChart, annualChangesChart, monteCarloChart, expenseGrowthChart, portfolioGrowthChart;
+
+        // A global-like object to hold calculation results
+        let calculationResults = {};
+        let calculationTimeout;
+
+        // Input elements
+        const inputs = {
+            currentSavings: document.getElementById('currentSavings'),
+            monthlyContributions: document.getElementById('monthlyContributions'),
+            contributionIncrease: document.getElementById('contributionIncrease'),
+            monthlyExpenses: document.getElementById('monthlyExpenses'),
+            currentAge: document.getElementById('currentAge'),
+            retirementAge: document.getElementById('retirementAge'),
+            annualReturn: document.getElementById('annualReturn'),
+            inflation: document.getElementById('inflation'),
+            fireMultiplier: document.getElementById('fireMultiplier'),
+            taxRate: document.getElementById('taxRate'),
+            otherFees: document.getElementById('otherFees')
+        };
+        const fireTypeSelector = document.getElementById('fire-type-selector');
+
+        // Modal elements
+        const infoIcons = {
+            lifestyle: document.getElementById('info-icon-lifestyle'),
+            rule: document.getElementById('info-icon-rule'),
+            target: document.getElementById('info-icon-target'),
+            monteCarlo: document.getElementById('info-icon-monte-carlo')
+        };
+        const modals = {
+            lifestyle: document.getElementById('info-modal-lifestyle'),
+            rule: document.getElementById('info-modal-rule'),
+            target: document.getElementById('info-modal-target'),
+            monteCarlo: document.getElementById('info-modal-monte-carlo')
+        };
+
+        // Value display spans for sliders
+        const sliderValues = {
+            contributionIncreaseValue: document.getElementById('contributionIncreaseValue'),
+            annualReturnValue: document.getElementById('annualReturnValue'),
+            inflationValue: document.getElementById('inflationValue'),
+            fireMultiplierValue: document.getElementById('fireMultiplierValue'),
+            swrValue: document.getElementById('swrValue'),
+            taxRateValue: document.getElementById('taxRateValue'),
+            otherFeesValue: document.getElementById('otherFeesValue')
+        };
+        
+        // Output elements
+        const outputs = {
+            yearsToFire: document.getElementById('yearsToFire'),
+            fireAge: document.getElementById('fireAge'),
+            projectedSavings: document.getElementById('projectedSavings'),
+            projectedSavingsWords: document.getElementById('projectedSavingsWords'),
+            ageAtDepletion: document.getElementById('ageAtDepletion'),
+            yearsRemaining: document.getElementById('yearsRemaining'),
+            fireAmount: document.getElementById('fireAmount'),
+            fireAmountWords: document.getElementById('fireAmountWords'),
+            fireAmountToday: document.getElementById('fireAmountToday'),
+            fireAmountTodayWords: document.getElementById('fireAmountTodayWords'),
+            fireRuleText: document.getElementById('fireRuleText'),
+            // Removed currentMonthlyExpenseOutput and words as it's just input value
+            retirementMonthlyExpenseOutput: document.getElementById('retirementMonthlyExpenseOutput'),
+            retirementMonthlyExpenseOutputWords: document.getElementById('retirementMonthlyExpenseOutputWords'),
+            breakdownTableBody: document.getElementById('breakdownTableBody'),
+            currentSavingsWords: document.getElementById('currentSavingsWords'),
+            monthlyContributionsWords: document.getElementById('monthlyContributionsWords'),
+            monthlyExpensesWords: document.getElementById('monthlyExpensesWords'),
+            monteCarloStatus: document.getElementById('monteCarloStatus'),
+            runMonteCarloBtn: document.getElementById('runMonteCarlo'),
+            exportPdfBtn: document.getElementById('exportPdfBtn')
+        };
+
+        // Format numbers to INR currency style
+        const inrFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        });
+
+        // Function to convert number to Indian numbering system words (Lakh, Crore)
+        function numberToWords(n) {
+            if (n === null || isNaN(n) || n === 0) return '';
+            const num = Math.round(n); // Round to avoid issues with floating points in conversion
+
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+            const toWords = (val) => {
+                if (val === 0) return '';
+                if (val < 20) return a[val];
+                return (b[Math.floor(val / 10)] + (val % 10 !== 0 ? ' ' : '') + a[val % 10]).trim();
+            };
+
+            const convert = (val) => {
+                if (val === 0) return '';
+                if (val >= 10000000) return (convert(Math.floor(val / 10000000)) + ' Crore ' + convert(val % 10000000)).trim();
+                if (val >= 100000) return (toWords(Math.floor(val / 100000)) + ' Lakh ' + convert(val % 100000)).trim();
+                if (val >= 1000) return (toWords(Math.floor(val / 1000)) + ' Thousand ' + convert(val % 1000)).trim();
+                if (val >= 100) return (a[Math.floor(val / 100)] + ' Hundred ' + convert(val % 100)).trim();
+                return toWords(val);
+            };
+            
+            let words = convert(num);
+             // Capitalize first letter
+            return words.charAt(0).toUpperCase() + words.slice(1);
+        }
+
+
+        function updateAmountInWords(inputId, outputId) {
+            const element = document.getElementById(inputId);
+            if (!element) return; // Guard clause
+            const value = parseFloat(element.value) || 0;
+            const wordsOutput = document.getElementById(outputId);
+             if (value > 0) {
+                 wordsOutput.textContent = numberToWords(value) + ' Rupees';
+             } else {
+                 wordsOutput.textContent = '';
+             }
+        }
+
+        function runAllCalculations() {
+            // --- Get values from inputs ---
+            const fireMultiplierValue = parseInt(inputs.fireMultiplier.value);
+            const lifestyleMultiplier = parseFloat(fireTypeSelector.querySelector('.active').dataset.multiplier);
+            const currentSavings = parseFloat(inputs.currentSavings.value) || 0;
+            const monthlyContributions = parseFloat(inputs.monthlyContributions.value) || 0;
+            const contributionIncrease = parseFloat(inputs.contributionIncrease.value) / 100;
+            const monthlyExpenses = parseFloat(inputs.monthlyExpenses.value) || 0;
+            const currentAge = parseInt(inputs.currentAge.value);
+            const retirementAge = parseInt(inputs.retirementAge.value);
+            const annualReturn = parseFloat(inputs.annualReturn.value) / 100;
+            const inflation = parseFloat(inputs.inflation.value) / 100;
+            const taxRate = parseFloat(inputs.taxRate.value) / 100;
+            const otherFees = parseFloat(inputs.otherFees.value) / 100;
+            const taxApplication = document.querySelector('input[name="taxApplication"]:checked').value;
+            const feesApplication = document.querySelector('input[name="feesApplication"]:checked').value;
+            const yearsToRetirement = Math.max(0, retirementAge - currentAge);
+            
+            const breakdownData = [];
+            let totalPrincipalContributions = 0;
+            const portfolioGrowthLabels = [];
+            const portfolioGrowthPrincipal = [];
+            const portfolioGrowthGains = [];
+
+
+            // --- Calculate Projected Savings at Retirement (Accumulation Phase) ---
+            let accumulationCorpus = currentSavings;
+            let currentMonthlyContributions = monthlyContributions;
+            for (let i = 0; i < yearsToRetirement; i++) {
+                const startBalance = accumulationCorpus;
+                const annualContributions = currentMonthlyContributions * 12;
+                totalPrincipalContributions += annualContributions;
+
+                const gain = (startBalance + annualContributions) * annualReturn;
+                
+                const taxOnGain = (taxApplication === 'all' && gain > 0) ? gain * taxRate : 0;
+                const balanceAfterGainsAndTaxes = startBalance + annualContributions + gain - taxOnGain;
+                
+                const otherFeesAmount = (feesApplication === 'all') ? balanceAfterGainsAndTaxes * otherFees : 0;
+                
+                const endBalance = balanceAfterGainsAndTaxes - otherFeesAmount;
+                
+                const netGain = gain - taxOnGain;
+
+                breakdownData.push({
+                    age: currentAge + i,
+                    start: startBalance,
+                    change: annualContributions,
+                    gain: netGain,
+                    taxesAndFees: taxOnGain + otherFeesAmount,
+                    end: endBalance,
+                    type: 'accumulation'
+                });
+
+                // For portfolio growth chart
+                portfolioGrowthLabels.push(currentAge + i);
+                const currentTotalPrincipal = currentSavings + totalPrincipalContributions;
+                portfolioGrowthPrincipal.push(currentTotalPrincipal);
+                portfolioGrowthGains.push(endBalance - currentTotalPrincipal);
+
+                accumulationCorpus = endBalance;
+                currentMonthlyContributions *= (1 + contributionIncrease);
+            }
+            const projectedSavingsAtRetirement = accumulationCorpus;
+            const totalGainsDuringAccumulation = projectedSavingsAtRetirement - currentSavings - totalPrincipalContributions;
+            
+            outputs.projectedSavings.textContent = inrFormatter.format(projectedSavingsAtRetirement);
+            outputs.projectedSavingsWords.textContent = numberToWords(projectedSavingsAtRetirement) + ' Rupees';
+            
+            // --- Calculate Inflated Expenses ---
+            const monthlyExpensesAtRetirement = monthlyExpenses * Math.pow(1 + inflation, yearsToRetirement);
+            // outputs.currentMonthlyExpenseOutput.textContent = inrFormatter.format(monthlyExpenses); // Removed - redundant
+            // outputs.currentMonthlyExpenseOutputWords.textContent = numberToWords(monthlyExpenses) + ' Rupees'; // Removed - redundant
+            outputs.retirementMonthlyExpenseOutput.textContent = inrFormatter.format(monthlyExpensesAtRetirement);
+            outputs.retirementMonthlyExpenseOutputWords.textContent = numberToWords(monthlyExpensesAtRetirement) + ' Rupees';
+
+            // --- Calculate FIRE Amount based on inflated expenses ---
+            const effectiveMonthlyExpenses = monthlyExpensesAtRetirement * lifestyleMultiplier;
+            let annualWithdrawalAtRetirement = effectiveMonthlyExpenses * 12;
+            const fireAmountTarget = annualWithdrawalAtRetirement * fireMultiplierValue;
+            outputs.fireAmount.textContent = inrFormatter.format(fireAmountTarget);
+            outputs.fireAmountWords.textContent = numberToWords(fireAmountTarget) + ' Rupees';
+            
+            const fireAmountTodayTarget = (monthlyExpenses * lifestyleMultiplier * 12) * fireMultiplierValue;
+            outputs.fireAmountToday.textContent = inrFormatter.format(fireAmountTodayTarget);
+            outputs.fireAmountTodayWords.textContent = numberToWords(fireAmountTodayTarget) + ' Rupees';
+            outputs.fireRuleText.textContent = `(Based on the ${fireMultiplierValue}x rule)`;
+
+            // --- Store key results for other functions ---
+            calculationResults.projectedSavings = projectedSavingsAtRetirement;
+            calculationResults.annualWithdrawal = annualWithdrawalAtRetirement;
+            calculationResults.breakdownData = breakdownData; // Stored for PDF export
+
+            // --- Calculate Years to FIRE ---
+            calculateYearsToFIRE();
+
+            // --- Calculate Longevity (Withdrawal Phase) ---
+            const MAX_YEARS = 100; // A safeguard to prevent infinite loops
+            let yearsInRetirement = 0;
+            let currentCorpus = projectedSavingsAtRetirement;
+            let currentAnnualWithdrawal = annualWithdrawalAtRetirement;
+            const corpusHistory = [projectedSavingsAtRetirement];
+            const ageLabels = [retirementAge];
+
+            while (currentCorpus > 0 && yearsInRetirement < MAX_YEARS) {
+                const yearStartBalance = currentCorpus;
+                
+                const withdrawalRate = yearStartBalance > 0 ? (currentAnnualWithdrawal / yearStartBalance) * 100 : 0;
+                
+                const investmentGain = currentCorpus * annualReturn;
+                
+                let taxOnGain = 0;
+                if ((taxApplication === 'post' || taxApplication === 'all') && investmentGain > 0) {
+                    taxOnGain = investmentGain * taxRate;
+                }
+                const balanceAfterGainsAndTaxes = yearStartBalance + investmentGain - taxOnGain;
+                
+                let otherFeesAmount = 0;
+                if (feesApplication === 'post' || feesApplication === 'all') {
+                    otherFeesAmount = balanceAfterGainsAndTaxes * otherFees;
+                }
+                
+                currentCorpus = balanceAfterGainsAndTaxes - otherFeesAmount - currentAnnualWithdrawal;
+
+                if (currentCorpus < 0) {
+                    currentCorpus = 0;
+                }
+                
+                const netGain = investmentGain - taxOnGain;
+
+                calculationResults.breakdownData.push({ // Push to the global object
+                    age: retirementAge + yearsInRetirement,
+                    start: yearStartBalance,
+                    change: -currentAnnualWithdrawal,
+                    withdrawalRate: withdrawalRate,
+                    gain: netGain,
+                    taxesAndFees: taxOnGain + otherFeesAmount,
+                    end: currentCorpus,
+                    type: 'withdrawal'
+                });
+
+                // Push data for chart starting from the first year of retirement
+                corpusHistory.push(currentCorpus);
+                ageLabels.push(retirementAge + yearsInRetirement + 1); // Age at end of year
+
+                currentAnnualWithdrawal *= (1 + inflation);
+                yearsInRetirement++;
+                 if (yearsInRetirement >= MAX_YEARS && currentCorpus > 0) break; // Exit if max years reached and still solvent
+            }
+
+            // Adjust age labels if loop terminated early
+             if (currentCorpus <= 0 && yearsInRetirement > 0) {
+                 ageLabels.pop(); // Remove the last label if money ran out
+             }
+
+
+            // --- Update UI ---
+            const yearsLasted = yearsInRetirement; // Actual number of full years money lasted
+            const ageAtDepletion = retirementAge + yearsLasted;
+
+            if (projectedSavingsAtRetirement <= 0) {
+                outputs.ageAtDepletion.textContent = retirementAge;
+                outputs.yearsRemaining.textContent = "No savings to start retirement.";
+            } else if (yearsInRetirement >= MAX_YEARS && currentCorpus > 0) {
+                outputs.ageAtDepletion.textContent = "100+"; // More accurate than Forever
+                outputs.yearsRemaining.textContent = `Lasts indefinitely (100+ years)`;
+            } else {
+                outputs.ageAtDepletion.textContent = `${ageAtDepletion}`;
+                 if (yearsLasted < 1) {
+                     outputs.yearsRemaining.textContent = `Runs out within the first year.`;
+                 } else {
+                     outputs.yearsRemaining.textContent = `Lasting for ${yearsLasted} years.`;
+                 }
+            }
+
+            // --- Calculate data for Expense Growth Chart ---
+            const expenseGrowthLabels = [];
+            const expenseGrowthData = [];
+            let currentAnnualExpense = monthlyExpenses * 12;
+            // Extend chart slightly beyond retirement for context
+            const chartYears = Math.max(yearsToRetirement + 5, 10); 
+            for (let i = 0; i <= chartYears ; i++) {
+                expenseGrowthLabels.push(currentAge + i);
+                expenseGrowthData.push(currentAnnualExpense);
+                currentAnnualExpense *= (1 + inflation);
+            }
+
+            // --- Update Charts and Table ---
+            updatePortfolioGrowthChart(portfolioGrowthLabels, portfolioGrowthPrincipal, portfolioGrowthGains);
+            updateExpenseGrowthChart(expenseGrowthLabels, expenseGrowthData);
+            updateDrawdownChart(ageLabels, corpusHistory);
+            updateBreakdownTable(calculationResults.breakdownData);
+            updateBreakdownPieChart(currentSavings + totalPrincipalContributions, totalGainsDuringAccumulation);
+            updateAnnualChangesChart(calculationResults.breakdownData);
+        }
+        
+        function calculateYearsToFIRE() {
+            const fireMultiplierValue = parseInt(inputs.fireMultiplier.value);
+            const lifestyleMultiplier = parseFloat(fireTypeSelector.querySelector('.active').dataset.multiplier);
+            const currentSavings = parseFloat(inputs.currentSavings.value) || 0;
+            let monthlyContributions = parseFloat(inputs.monthlyContributions.value) || 0;
+            const contributionIncrease = parseFloat(inputs.contributionIncrease.value) / 100;
+            const monthlyExpenses = parseFloat(inputs.monthlyExpenses.value) || 0;
+            const currentAge = parseInt(inputs.currentAge.value);
+            const annualReturn = parseFloat(inputs.annualReturn.value) / 100;
+            const inflation = parseFloat(inputs.inflation.value) / 100;
+            const taxRate = parseFloat(inputs.taxRate.value) / 100;
+            const otherFees = parseFloat(inputs.otherFees.value) / 100;
+            const taxApplication = document.querySelector('input[name="taxApplication"]:checked').value;
+            const feesApplication = document.querySelector('input[name="feesApplication"]:checked').value;
+            
+            let years = 0;
+            let savings = currentSavings;
+            let target = (monthlyExpenses * lifestyleMultiplier * 12) * fireMultiplierValue;
+            
+            const journeyLabels = [currentAge];
+            const journeySavings = [savings];
+            const journeyTarget = [target];
+
+            while (savings < target && years < 100) {
+                years++;
+                const annualContributions = monthlyContributions * 12;
+                const gain = (savings + annualContributions) * annualReturn;
+                const taxOnGain = (taxApplication === 'all' && gain > 0) ? gain * taxRate : 0;
+                const balanceAfterGainsAndTaxes = savings + annualContributions + gain - taxOnGain;
+                const otherFeesAmount = (feesApplication === 'all') ? balanceAfterGainsAndTaxes * otherFees : 0;
+                
+                savings = balanceAfterGainsAndTaxes - otherFeesAmount;
+                target = target * (1 + inflation);
+                monthlyContributions *= (1 + contributionIncrease);
+                
+                journeyLabels.push(currentAge + years);
+                journeySavings.push(savings);
+                journeyTarget.push(target);
+            }
+
+            if (years >= 100) {
+                outputs.yearsToFire.textContent = "100+ years";
+                outputs.fireAge.textContent = `At this rate, FIRE age is 100+`;
+            } else {
+                outputs.yearsToFire.textContent = `${years} year${years > 1 ? 's' : ''}`;
+                outputs.fireAge.textContent = `Projected FIRE Age: ${currentAge + years}`;
+            }
+            updateJourneyChart(journeyLabels, journeySavings, journeyTarget);
+        }
+
+        function updateJourneyChart(labels, savingsData, targetData) {
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Projected Savings',
+                    data: savingsData,
+                    borderColor: '#0d9488', // teal-600
+                    backgroundColor: 'rgba(13, 148, 136, 0.1)', // teal-600 (opacity 0.1)
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                }, {
+                    label: 'FIRE Target',
+                    data: targetData,
+                    borderColor: '#f59e0b', // amber-500
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)', // amber-500 (opacity 0.1)
+                    borderDash: [5, 5],
+                    fill: false, // Don't fill target line
+                    tension: 0.3,
+                    pointRadius: 0,
+                }]
+            };
+
+            if (journeyChart) {
+                journeyChart.data = data;
+                journeyChart.update();
+            } else {
+                const ctx = document.getElementById('journeyChart').getContext('2d');
+                journeyChart = new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { ticks: { callback: value => inrFormatter.format(value) } },
+                            x: { title: { display: true, text: 'Age' } }
+                        },
+                        plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${inrFormatter.format(context.raw)}` } } }
+                    }
+                });
+            }
+        }
+
+
+        function updateDrawdownChart(labels, data) {
+            const chartData = {
+                labels: labels,
+                datasets: [{
+                    label: 'Retirement Corpus Balance',
+                    data: data,
+                    borderColor: '#0d9488', // teal-600
+                    backgroundColor: 'rgba(13, 148, 136, 0.1)', // teal-600 (opacity 0.1)
+                    fill: 'origin', // Fill down to 0
+                    tension: 0.3,
+                     pointRadius: 0,
+                }]
+            };
+
+            if (drawdownChart) {
+                drawdownChart.data = chartData;
+                drawdownChart.update();
+            } else {
+                const ctx = document.getElementById('drawdownChart').getContext('2d');
+                drawdownChart = new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true, // Start y-axis at 0
+                                title: { display: false }, // Remove axis title
+                                ticks: { callback: value => inrFormatter.format(value) } 
+                            },
+                            x: { 
+                                title: { display: true, text: 'Your Age' } 
+                            }
+                        },
+                        plugins: { 
+                            legend: { display: false }, // Hide legend for single dataset
+                            tooltip: { 
+                                callbacks: { 
+                                    label: context => `Balance: ${inrFormatter.format(context.raw)}` 
+                                } 
+                            } 
+                        }
+                    }
+                });
+            }
+        }
+        
+        function updateAnnualChangesChart(data) {
+            const labels = data.map(d => d.age);
+            const gainsData = data.map(d => d.gain > 0 ? d.gain : 0); // Only positive gains
+            const lossData = data.map(d => d.gain < 0 ? d.gain : 0); // Only negative gains (losses)
+            const contributionsData = data.map(d => (d.type === 'accumulation' ? d.change : 0));
+            const withdrawalsData = data.map(d => (d.type === 'withdrawal' ? d.change : 0)); // Negative values
+            const taxesFeesData = data.map(d => -d.taxesAndFees); // Negative values
+           
+
+            const chartData = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Contributions',
+                        data: contributionsData,
+                        backgroundColor: '#86efac', // green-300
+                        stack: 'stack 0',
+                    },
+                    {
+                        label: 'Investment Gain',
+                        data: gainsData,
+                        backgroundColor: '#22c55e', // green-500
+                        stack: 'stack 0',
+                    },
+                     {
+                        label: 'Investment Loss',
+                        data: lossData,
+                        backgroundColor: '#fca5a5', // red-300
+                         stack: 'stack 1',
+                    },
+                    {
+                        label: 'Withdrawals',
+                        data: withdrawalsData,
+                        backgroundColor: '#ef4444', // red-500
+                         stack: 'stack 1',
+                    },
+                    {
+                        label: 'Taxes & Fees',
+                        data: taxesFeesData,
+                        backgroundColor: '#f97316', // orange-500
+                         stack: 'stack 1',
+                    },
+                   
+                ]
+            };
+            
+            const options = {
+                responsive: true,
+                 maintainAspectRatio: true, 
+                scales: {
+                    x: { 
+                        stacked: true,
+                        title: { display: true, text: 'Age' }
+                     },
+                    y: {
+                        stacked: true,
+                        title: { display: true, text: 'Annual Change (INR)' },
+                        ticks: { callback: value => inrFormatter.format(value) }
+                    },
+                },
+                 plugins: {
+                     tooltip: {
+                         callbacks: {
+                             label: function(context) {
+                                 let label = context.dataset.label || '';
+                                 if (label) {
+                                     label += ': ';
+                                 }
+                                 if (context.parsed.y !== null) {
+                                     label += inrFormatter.format(context.parsed.y);
+                                 }
+                                 return label;
+                             }
+                         }
+                     }
+                 }
+            };
+
+            if (annualChangesChart) {
+                annualChangesChart.destroy(); // Destroy previous chart instance
+            }
+           
+            const ctx = document.getElementById('annualChangesChart').getContext('2d');
+            annualChangesChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: options
+            });
+        }
+
+
+        function updateBreakdownTable(data) {
+            outputs.breakdownTableBody.innerHTML = ''; // Clear previous table content
+
+            data.forEach(yearData => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white hover:bg-slate-50'; // Add hover effect
+                
+                const changeAmount = yearData.change;
+                const changeCell = changeAmount >= 0 
+                    ? `<td class="px-3 py-2 text-green-600 whitespace-nowrap text-right">+${inrFormatter.format(changeAmount)}</td>`
+                    : `<td class="px-3 py-2 text-red-600 whitespace-nowrap text-right">${inrFormatter.format(changeAmount)}</td>`;
+                
+                const rateCell = yearData.type === 'withdrawal' && yearData.withdrawalRate !== undefined
+                    ? `<td class="px-3 py-2 whitespace-nowrap text-right">${yearData.withdrawalRate.toFixed(1)}%</td>`
+                    : `<td class="px-3 py-2 whitespace-nowrap text-right">-</td>`;
+                 
+                 const gainFormatted = yearData.gain >= 0 ? `+${inrFormatter.format(yearData.gain)}` : inrFormatter.format(yearData.gain);
+                 const gainColor = yearData.gain >= 0 ? 'text-green-600' : 'text-red-600';
+
+                 const feesFormatted = yearData.taxesAndFees > 0 ? inrFormatter.format(-yearData.taxesAndFees) : inrFormatter.format(0);
+
+
+                row.innerHTML = `
+                    <td class="px-3 py-2 font-medium text-slate-700 whitespace-nowrap">${yearData.age}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-right">${inrFormatter.format(yearData.start)}</td>
+                    ${changeCell}
+                    ${rateCell}
+                    <td class="px-3 py-2 ${gainColor} whitespace-nowrap text-right">${gainFormatted}</td>
+                    <td class="px-3 py-2 text-red-600 whitespace-nowrap text-right">${feesFormatted}</td>
+                    <td class="px-3 py-2 font-semibold whitespace-nowrap text-right text-slate-800">${inrFormatter.format(yearData.end)}</td>
+                `;
+                
+                outputs.breakdownTableBody.appendChild(row);
+            });
+        }
+
+
+        function updateBreakdownPieChart(principal, gains) {
+             // Ensure gains are not negative for pie chart
+             const displayGains = Math.max(0, gains);
+             const displayPrincipal = Math.max(0, principal); // Ensure principal isn't negative either
+             const total = displayPrincipal + displayGains;
+
+            const data = {
+                 // Update labels to show percentages
+                 labels: [
+                     `Contributions (${total > 0 ? ((displayPrincipal / total) * 100).toFixed(1) : 0}%)`,
+                     `Gains (${total > 0 ? ((displayGains / total) * 100).toFixed(1) : 0}%)`
+                 ],
+                datasets: [{
+                    data: [displayPrincipal, displayGains],
+                    backgroundColor: ['#a5f3fc', '#14b8a6'], // NEW: cyan-200, teal-500
+                     borderColor: '#f8fafc', // Add border for separation
+                    hoverOffset: 4
+                }]
+            };
+
+            if (breakdownPieChart) {
+                breakdownPieChart.data = data;
+                breakdownPieChart.update();
+            } else {
+                const ctx = document.getElementById('breakdownPieChart').getContext('2d');
+                breakdownPieChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%', // Make doughnut thinner
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                     boxWidth: 12, // Smaller legend boxes
+                                     padding: 15 // Spacing for legend items
+                                 }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                         // Get label without percentage
+                                         let rawLabel = context.label.split('(')[0].trim(); 
+                                         return `${rawLabel}: ${inrFormatter.format(context.parsed)}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateExpenseGrowthChart(labels, data) {
+            const chartData = {
+                labels: labels,
+                datasets: [{
+                    label: 'Annual Expenses',
+                    data: data,
+                    borderColor: '#f97316', // orange-500
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                }]
+            };
+
+            if (expenseGrowthChart) {
+                expenseGrowthChart.data = chartData;
+                expenseGrowthChart.update();
+            } else {
+                const ctx = document.getElementById('expenseGrowthChart').getContext('2d');
+                expenseGrowthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                title: { display: false },
+                                ticks: { callback: value => inrFormatter.format(value) } 
+                            },
+                            x: { 
+                                title: { display: true, text: 'Your Age' } 
+                            }
+                        },
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: { 
+                                callbacks: { 
+                                    label: context => `Est. Annual Expenses: ${inrFormatter.format(context.raw)}` 
+                                } 
+                            } 
+                        }
+                    }
+                });
+            }
+        }
+
+        function updatePortfolioGrowthChart(labels, principalData, gainsData) {
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Contributions',
+                    data: principalData,
+                    backgroundColor: '#a5f3fc', // cyan-200
+                    borderColor: '#0891b2', // cyan-600
+                    fill: true,
+                     pointRadius: 0,
+                }, {
+                    label: 'Investment Gains',
+                    data: gainsData,
+                     backgroundColor: '#5eead4', // teal-300
+                     borderColor: '#0d9488', // teal-600
+                    fill: true,
+                     pointRadius: 0,
+                }]
+            };
+
+            if (portfolioGrowthChart) {
+                portfolioGrowthChart.data = data;
+                portfolioGrowthChart.update();
+            } else {
+                const ctx = document.getElementById('portfolioGrowthChart').getContext('2d');
+                portfolioGrowthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                         maintainAspectRatio: true, 
+                        scales: {
+                            y: { 
+                                stacked: true,
+                                title: { display: true, text: 'Portfolio Value (INR)' },
+                                ticks: { callback: value => inrFormatter.format(value) }
+                            },
+                            x: { 
+                                title: { display: true, text: 'Age' } 
+                            }
+                        },
+                         plugins: {
+                             tooltip: {
+                                 mode: 'index',
+                                 intersect: false,
+                                 callbacks: {
+                                     label: function(context) {
+                                         return `${context.dataset.label}: ${inrFormatter.format(context.parsed.y)}`;
+                                     }
+                                 }
+                             },
+                         },
+                         interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                    }
+                });
+            }
+        }
+
+        function runMonteCarloSimulation() {
+            outputs.runMonteCarloBtn.disabled = true;
+            outputs.monteCarloStatus.textContent = 'Running simulations...';
+
+            // Use requestAnimationFrame for smoother UI update before blocking task
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    const NUM_SIMULATIONS = 500;
+                    const SIMULATION_YEARS = 60; // Max years to simulate drawdown
+                    const retirementAgeVal = parseInt(inputs.retirementAge.value);
+                    const meanReturn = parseFloat(inputs.annualReturn.value) / 100;
+                    // Using a slightly higher std dev assumption for emerging markets like India
+                    const stdDev = 0.18; 
+
+                    const initialCorpus = calculationResults.projectedSavings;
+                    let initialWithdrawal = calculationResults.annualWithdrawal;
+
+                    const inflation = parseFloat(inputs.inflation.value) / 100;
+                    const taxRateMC = parseFloat(inputs.taxRate.value) / 100;
+                    const otherFeesMC = parseFloat(inputs.otherFees.value) / 100;
+                     const taxApplicationMC = document.querySelector('input[name="taxApplication"]:checked').value;
+                     const feesApplicationMC = document.querySelector('input[name="feesApplication"]:checked').value;
+
+                    
+                    const allSimulations = [];
+                    let successCount = 0;
+
+                    for (let i = 0; i < NUM_SIMULATIONS; i++) {
+                        let corpus = initialCorpus;
+                        let withdrawal = initialWithdrawal;
+                        const path = [corpus];
+
+                        for (let j = 0; j < SIMULATION_YEARS; j++) {
+                            // Box-Muller transform for normally distributed random numbers
+                            const u1 = Math.random();
+                            const u2 = Math.random();
+                            const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                            const randomReturn = meanReturn + z0 * stdDev;
+
+                            const gain = corpus * randomReturn;
+                            
+                            let taxOnGain = 0;
+                            if ((taxApplicationMC === 'post' || taxApplicationMC === 'all') && gain > 0) {
+                                taxOnGain = gain * taxRateMC;
+                            }
+                             const balanceAfterGainsTaxes = corpus + gain - taxOnGain;
+
+                             let feeAmount = 0;
+                             if (feesApplicationMC === 'post' || feesApplicationMC === 'all') {
+                                 feeAmount = balanceAfterGainsTaxes * otherFeesMC;
+                             }
+
+                            corpus = balanceAfterGainsTaxes - feeAmount - withdrawal;
+                            
+                            withdrawal *= (1 + inflation);
+                            if (corpus <= 0) {
+                                corpus = 0;
+                                path.push(corpus); // Add the zero point
+                                break; // Stop simulation if corpus depleted
+                            }
+                            path.push(corpus);
+                        }
+                         // Pad remaining years with 0 if depleted early
+                         while (path.length <= SIMULATION_YEARS) {
+                             path.push(0);
+                         }
+
+                        allSimulations.push(path);
+                         // Check if corpus lasted for at least 30 years (a common benchmark) or SIMULATION_YEARS
+                         if (path[Math.min(30, SIMULATION_YEARS)] > 0) { 
+                             successCount++;
+                         }
+                    }
+
+                    // Calculate success rate based on 30 years or simulation length
+                    const successRate = (successCount / NUM_SIMULATIONS) * 100;
+                    outputs.monteCarloStatus.textContent = `Success Rate (${Math.min(30, SIMULATION_YEARS)} yrs): ${successRate.toFixed(1)}%`;
+                    
+                    updateMonteCarloChart(allSimulations, SIMULATION_YEARS, retirementAgeVal);
+                    outputs.runMonteCarloBtn.disabled = false;
+                }, 0); // Use 0ms timeout to yield after rAF
+            });
+        }
+
+       function updateMonteCarloChart(simulations, years, startAge) {
+           const labels = Array.from({length: years + 1}, (_, i) => i + startAge);
+
+           // Determine the number of paths to show (e.g., max 50)
+           const pathsToShow = Math.min(simulations.length, 50);
+           
+           const datasets = simulations.slice(0, pathsToShow).map((simPath, index) => ({
+                label: `Sim ${index + 1}`,
+                data: simPath,
+                borderColor: 'rgba(156, 163, 175, 0.2)', // gray-400 with opacity
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.1 // Less tension for potentially volatile paths
+            }));
+
+            // Calculate percentiles
+            const p10 = [], p50 = [], p90 = [];
+            for (let i = 0; i <= years; i++) {
+                const yearValues = simulations.map(sim => sim[i]).sort((a, b) => a - b);
+                p10.push(yearValues[Math.floor(yearValues.length * 0.1)]);
+                p50.push(yearValues[Math.floor(yearValues.length * 0.5)]);
+                p90.push(yearValues[Math.floor(yearValues.length * 0.9)]);
+            }
+
+            datasets.push({
+                label: 'Median Outcome (50th)',
+                data: p50,
+                borderColor: '#0d9488', // teal-600
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false
+            });
+             datasets.push({
+                label: '10th Percentile',
+                data: p10,
+                borderColor: '#f97316', // orange-500
+                borderWidth: 1.5,
+                borderDash: [6, 3],
+                pointRadius: 0,
+                fill: false
+            });
+             datasets.push({
+                label: '90th Percentile',
+                data: p90,
+                borderColor: '#16a34a', // green-600
+                borderWidth: 1.5,
+                borderDash: [6, 3],
+                pointRadius: 0,
+                fill: false
+            });
+
+
+            if (monteCarloChart) {
+                 monteCarloChart.destroy(); // Destroy and recreate for cleaner updates
+             }
+            
+            const ctx = document.getElementById('monteCarloChart').getContext('2d');
+            monteCarloChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                         y: { 
+                             beginAtZero: true,
+                             ticks: { callback: value => inrFormatter.format(value) } 
+                         },
+                         x: { title: { display: true, text: 'Age' } }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                             labels: {
+                                 // Only show labels for the percentile lines and Median
+                                 filter: item => item.text && (item.text.includes('Percentile') || item.text.includes('Median')),
+                                 boxWidth: 10,
+                                 padding: 10
+                             }
+                        },
+                         tooltip: { enabled: false } // Disable tooltips for performance with many lines
+                    },
+                     animation: {
+                         duration: 0 // Disable animation for faster rendering
+                     }
+                }
+            });
+        }
+        
+        async function exportToPDF() {
+            // BUG FIX: Moved this line from global scope to inside the function
+            const { jsPDF } = window.jspdf;
+
+            outputs.exportPdfBtn.disabled = true;
+            outputs.exportPdfBtn.innerHTML = 'Generating PDF...';
+
+            try {
+                const doc = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 15;
+                let yPos = margin;
+
+                const addHeader = (title) => {
+                    doc.setFontSize(18);
+                    doc.setFont('helvetica', 'bold');
+                     doc.setTextColor(45, 55, 72); // slate-700
+                    doc.text('FIRE Report', pageWidth / 2, yPos, { align: 'center' });
+                    yPos += 8;
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'normal');
+                     doc.setTextColor(100, 116, 139); // slate-500
+                    doc.text(title, pageWidth / 2, yPos, { align: 'center' });
+                    yPos += 8;
+                    doc.setDrawColor(226, 232, 240); // slate-200
+                    doc.setLineWidth(0.3);
+                    doc.line(margin, yPos, pageWidth - margin, yPos);
+                    yPos += 10;
+                     doc.setTextColor(45, 55, 72); // Reset color
+                };
+
+                const addFooter = () => {
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(8);
+                        doc.setTextColor(148, 163, 184); // slate-400
+                        doc.text(`Generated by FIRE Calculator India`, margin, pageHeight - 10);
+                        doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+                    }
+                };
+
+                // --- Page 1: Summary ---
+                addHeader('Your Financial Independence Summary');
+
+                // Helper to add key-value pairs
+                const addSummaryLine = (label, value) => {
+                     doc.setFontSize(10); // Smaller font size for summary
+                    doc.setFont('helvetica', 'bold');
+                     doc.setTextColor(45, 55, 72); // slate-700
+                    doc.text(label, margin, yPos);
+                    doc.setFont('helvetica', 'normal');
+                     doc.setTextColor(71, 85, 105); // slate-600
+                    doc.text(value, pageWidth - margin, yPos, { align: 'right' });
+                    yPos += 7; // Reduced spacing
+                };
+                 
+                 doc.setFontSize(12); // Section titles
+                 doc.setFont('helvetica', 'bold');
+                 doc.setTextColor(13, 148, 136); // teal-600
+                 doc.text('Key Results', margin, yPos);
+                 yPos += 6;
+
+
+                addSummaryLine('You can FIRE in:', outputs.yearsToFire.textContent);
+                 // Extract just the age number if possible
+                 let fireAgeText = outputs.fireAge.textContent.match(/\d+/) ? outputs.fireAge.textContent.match(/\d+/)[0] : outputs.fireAge.textContent;
+                addSummaryLine('Projected FIRE Age:', fireAgeText);
+                addSummaryLine('FIRE Amount at Retirement:', outputs.fireAmount.textContent);
+                addSummaryLine('Projected Savings at Retirement:', outputs.projectedSavings.textContent);
+                 let depletionAgeText = outputs.ageAtDepletion.textContent;
+                 let depletionYearsText = outputs.yearsRemaining.textContent.includes('indefinitely') ? '(Indefinite)' : outputs.yearsRemaining.textContent.replace('Lasting for ', '');
+                 addSummaryLine(`Savings Last Until Age ${depletionAgeText}:`, depletionYearsText);
+
+
+                yPos += 8; // More space before next section
+                 doc.setFontSize(12);
+                 doc.setFont('helvetica', 'bold');
+                 doc.setTextColor(13, 148, 136); // teal-600
+                 doc.text('Your Assumptions', margin, yPos);
+                 yPos += 6;
+
+                addSummaryLine('Current Age:', inputs.currentAge.value);
+                addSummaryLine('Target Retirement Age:', inputs.retirementAge.value);
+                 addSummaryLine('FIRE Lifestyle:', fireTypeSelector.querySelector('.active').textContent);
+                addSummaryLine('Current Savings:', inrFormatter.format(inputs.currentSavings.value));
+                addSummaryLine('Monthly Contributions:', inrFormatter.format(inputs.monthlyContributions.value));
+                 addSummaryLine('Annual Contribution Increase:', `${inputs.contributionIncrease.value}%`);
+                addSummaryLine('Monthly Expenses (Today):', inrFormatter.format(inputs.monthlyExpenses.value));
+                addSummaryLine('Annual Investment Return:', `${inputs.annualReturn.value}%`);
+                addSummaryLine('Annual Inflation:', `${inputs.inflation.value}%`);
+                addSummaryLine('FIRE Multiplier:', `${inputs.fireMultiplier.value}x (${sliderValues.swrValue.textContent}% SWR)`);
+                 addSummaryLine('Tax Rate on Gains:', `${inputs.taxRate.value}% (${document.querySelector('input[name="taxApplication"]:checked').nextElementSibling.textContent.trim()})`);
+                 addSummaryLine('Other Annual Fees:', `${inputs.otherFees.value}% (${document.querySelector('input[name="feesApplication"]:checked').nextElementSibling.textContent.trim()})`);
+
+
+                // --- Add Charts ---
+                const addChartToPdf = async (canvasId, title) => {
+                     // Check if yPos needs a new page BEFORE adding title
+                     if (yPos > pageHeight - margin - 80) { // Approx height for title + chart
+                        doc.addPage();
+                        yPos = margin;
+                    }
+
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                     doc.setTextColor(13, 148, 136); // teal-600
+                    doc.text(title, margin, yPos); // Align title left
+                    yPos += 6;
+                    
+                    const canvas = document.getElementById(canvasId);
+                    // Ensure canvas is rendered (wait a frame if needed, though html2canvas might handle this)
+                     await new Promise(resolve => setTimeout(resolve, 50)); // Small delay
+                     
+                    if (!canvas || canvas.height < 10 || canvas.width < 10) {
+                         console.warn(`Canvas ${canvasId} not rendered or too small.`);
+                         doc.setFontSize(9);
+                         doc.setTextColor(150);
+                         doc.text('Chart data could not be rendered.', margin, yPos);
+                         yPos += 10;
+                         return; // Skip this chart
+                     }
+                    
+                    try {
+                        const imgData = await html2canvas(canvas, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => canvas.toDataURL('image/png', 0.95)); // Use JPG for potentially smaller size
+                        const imgProps = doc.getImageProperties(imgData);
+                        const imgWidth = pageWidth - margin * 2;
+                        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+                        
+                         // Check again if chart fits AFTER getting height
+                         if (yPos + imgHeight > pageHeight - margin) {
+                            doc.addPage();
+                            yPos = margin;
+                             // Re-add title on new page
+                             doc.setFontSize(12);
+                             doc.setFont('helvetica', 'bold');
+                             doc.setTextColor(13, 148, 136);
+                             doc.text(title, margin, yPos);
+                             yPos += 6;
+                        }
+
+                        doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
+                        yPos += imgHeight + 8; // Reduced space after chart
+                    } catch(chartError) {
+                         console.error(`Error rendering chart ${canvasId} to PDF:`, chartError);
+                         doc.setFontSize(9);
+                         doc.setTextColor(150);
+                         doc.text(`Error rendering chart: ${title}`, margin, yPos);
+                         yPos += 10;
+                     }
+                };
+                
+                // Add charts sequentially
+                await addChartToPdf('journeyChart', 'Journey to FIRE');
+                await addChartToPdf('drawdownChart', 'Corpus Balance Over Time');
+                await addChartToPdf('portfolioGrowthChart', 'Sources of Portfolio Growth');
+                await addChartToPdf('expenseGrowthChart', "Inflation's Impact on Expenses");
+                 await addChartToPdf('annualChangesChart', 'Annual Portfolio Changes');
+
+
+                // --- Add Table ---
+                if (calculationResults.breakdownData && calculationResults.breakdownData.length > 0) {
+                     // Check for page break before adding table
+                     const tableStartY = yPos + 8; // Where the table header would start
+                     const approxTableHeight = 15 + calculationResults.breakdownData.length * 5; // Header + rows * height
+                     if (tableStartY + approxTableHeight > pageHeight - margin) {
+                         doc.addPage();
+                         yPos = margin;
+                     } else {
+                         yPos += 8;
+                     }
+
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(13, 148, 136); // teal-600
+                    doc.text('Year-by-Year Breakdown', margin, yPos);
+                    yPos += 6;
+                    
+                    const head = [['Age', 'Start Bal', 'Change', 'Rate', 'Gain', 'Taxes/Fees', 'End Bal']];
+                    const body = calculationResults.breakdownData.map(d => {
+                        const changeFormatted = d.change >= 0 ? `+${inrFormatter.format(d.change)}` : inrFormatter.format(d.change);
+                        const gainFormatted = d.gain >= 0 ? `+${inrFormatter.format(d.gain)}` : inrFormatter.format(d.gain);
+                        const rateFormatted = d.type === 'withdrawal' && d.withdrawalRate !== undefined ? `${d.withdrawalRate.toFixed(1)}%` : '-';
+                        const feesFormatted = d.taxesAndFees > 0 ? inrFormatter.format(-d.taxesAndFees) : inrFormatter.format(0);
+                        
+                        return [
+                            d.age,
+                            inrFormatter.format(d.start),
+                            changeFormatted,
+                            rateFormatted,
+                            gainFormatted,
+                            feesFormatted,
+                            inrFormatter.format(d.end)
+                        ];
+                    });
+
+                    doc.autoTable({
+                        head: head,
+                        body: body,
+                        startY: yPos,
+                        theme: 'grid',
+                        styles: { 
+                            fontSize: 7, // Smaller font for table
+                            cellPadding: 1.5,
+                            valign: 'middle'
+                         },
+                         headStyles: { 
+                             fillColor: [13, 148, 136], // teal-600
+                             textColor: [255, 255, 255], // white
+                             fontSize: 7.5,
+                             fontStyle: 'bold'
+                        },
+                         columnStyles: {
+                              // Right-align currency and rate columns
+                             1: { halign: 'right' }, 
+                             2: { halign: 'right' },
+                             3: { halign: 'right' },
+                             4: { halign: 'right' },
+                             5: { halign: 'right' },
+                             6: { halign: 'right' }
+                         },
+                         didDrawPage: (data) => {
+                              // Update yPos if table spans multiple pages
+                              yPos = data.cursor.y + 5; 
+                          }
+                    });
+                     // Update yPos after table is drawn if it didn't use didDrawPage
+                     if (doc.autoTable.previous.finalY) {
+                         yPos = doc.autoTable.previous.finalY + 5;
+                     }
+                }
+
+                addFooter();
+                doc.save('FIRE_Report_India_v2.pdf');
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                // Simple feedback for user
+                 outputs.exportPdfBtn.innerHTML = 'PDF Error';
+                 setTimeout(() => { // Reset button after a delay
+                      outputs.exportPdfBtn.disabled = false;
+                       outputs.exportPdfBtn.innerHTML = `
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                         </svg>
+                         Export to PDF`;
+                 }, 3000);
+            } finally {
+                 // Ensure button is re-enabled unless there was an error message shown above
+                 if (!outputs.exportPdfBtn.textContent.includes('Error')) {
+                     outputs.exportPdfBtn.disabled = false;
+                      outputs.exportPdfBtn.innerHTML = `
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                         </svg>
+                         Export to PDF`;
+                 }
+            }
+        }
+
+
+        // --- Event Listeners ---
+        function handleInputChange() {
+            clearTimeout(calculationTimeout);
+            calculationTimeout = setTimeout(() => {
+                const currentAge = parseInt(inputs.currentAge.value);
+                const retirementAge = parseInt(inputs.retirementAge.value);
+                if (retirementAge < currentAge) {
+                    inputs.retirementAge.value = currentAge; // Ensure retirement age >= current age
+                }
+                 // Clamp ages within reasonable bounds
+                 if (currentAge < 18) inputs.currentAge.value = 18;
+                 if (currentAge > 80) inputs.currentAge.value = 80;
+                 if (retirementAge < 18) inputs.retirementAge.value = 18;
+                 if (retirementAge > 100) inputs.retirementAge.value = 100;
+
+                runAllCalculations();
+            }, 300); // Slightly longer debounce
+        }
+
+        Object.keys(inputs).forEach(key => {
+            inputs[key].addEventListener('input', (e) => {
+                // Update slider value display immediately
+                if (inputs[key].type === 'range') {
+                    const valueSpanId = key + 'Value';
+                    if (sliderValues[valueSpanId]) {
+                        sliderValues[valueSpanId].textContent = inputs[key].value;
+                    }
+                    if (key === 'fireMultiplier') {
+                        const multiplier = parseInt(inputs.fireMultiplier.value);
+                        const swr = multiplier > 0 ? (100 / multiplier).toFixed(1) : 'N/A';
+                        sliderValues.swrValue.textContent = swr;
+                    }
+                }
+                
+                // Update amount in words immediately for number inputs
+                if (['currentSavings', 'monthlyContributions', 'monthlyExpenses'].includes(key)) {
+                    updateAmountInWords(key, key + 'Words');
+                }
+
+                // Debounce the full recalculation
+                handleInputChange();
+            });
+             // Add change event for number inputs to catch spinner clicks/direct edits not caught by 'input' in some browsers
+             if(inputs[key].type === 'number') {
+                  inputs[key].addEventListener('change', handleInputChange);
+              }
+        });
+        
+        document.querySelectorAll('input[name="taxApplication"], input[name="feesApplication"]').forEach(radio => {
+            radio.addEventListener('change', runAllCalculations);
+        });
+
+
+        fireTypeSelector.addEventListener('click', (e) => {
+            const button = e.target.closest('button.fire-btn');
+            if (button && !button.classList.contains('active')) { // Check if not already active
+                const currentActive = fireTypeSelector.querySelector('.active');
+                if (currentActive) {
+                     currentActive.classList.remove('active');
+                }
+                button.classList.add('active');
+                runAllCalculations(); // Recalculate only if selection changed
+            }
+        });
+        
+        Object.keys(infoIcons).forEach(key => {
+            infoIcons[key].addEventListener('click', (e) => {
+                 e.stopPropagation(); // Prevent triggering other listeners
+                modals[key].classList.add('visible');
+            });
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+             overlay.addEventListener('click', (e) => {
+                  // Close only if clicking the overlay itself, not the content inside
+                  if (e.target === overlay) {
+                      overlay.classList.remove('visible');
+                  }
+              });
+         });
+         document.querySelectorAll('.close-modal-btn').forEach(btn => {
+             btn.addEventListener('click', () => {
+                 btn.closest('.modal-overlay').classList.remove('visible');
+             });
+         });
+
+
+        outputs.runMonteCarloBtn.addEventListener('click', runMonteCarloSimulation);
+        outputs.exportPdfBtn.addEventListener('click', exportToPDF);
+
+
+        // Initial setup on page load
+        function initializeCalculator() {
+             // Set initial slider text values
+            Object.keys(inputs).forEach(key => {
+                if (inputs[key].type === 'range') {
+                     const valueSpanId = key + 'Value';
+                     if (sliderValues[valueSpanId]) {
+                         sliderValues[valueSpanId].textContent = inputs[key].value;
+                     }
+                      if (key === 'fireMultiplier') {
+                         const multiplier = parseInt(inputs.fireMultiplier.value);
+                          const swr = multiplier > 0 ? (100 / multiplier).toFixed(1) : 'N/A';
+                         sliderValues.swrValue.textContent = swr;
+                     }
+                 }
+                 // Set initial words for amount fields
+                 if (['currentSavings', 'monthlyContributions', 'monthlyExpenses'].includes(key)) {
+                     updateAmountInWords(key, key + 'Words');
+                 }
+            });
+
+            // Run initial calculation
+            runAllCalculations();
+        }
+        
+        // Ensure DOM is fully loaded before running initial calculation
+         if (document.readyState === 'loading') {
+             document.addEventListener('DOMContentLoaded', initializeCalculator);
+         } else {
+             initializeCalculator(); // DOMContentLoaded has already fired
+         }
+
+    </script>
+</body>
+</html>
+
